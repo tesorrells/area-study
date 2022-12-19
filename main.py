@@ -8,6 +8,7 @@ def run(
     classification: str,
     data_directory: typing.Optional[str],
     save_directory: str,
+    location: typing.List[float],
     config_file: typing.Optional[str] = None,
     emergency_services: typing.Optional[bool] = None,
     law_enforcement: typing.Optional[bool] = None,
@@ -43,6 +44,13 @@ def main() -> None:
         type=str,
         default=None,
         help="config for CLI arguments",
+    )
+    parser.add_argument(
+        "--location",
+        required=True,
+        type=list,
+        default=None,
+        help="upper left, and lower right bounds of area study",
     )
     parser.add_argument(
         "--emergency-services",
