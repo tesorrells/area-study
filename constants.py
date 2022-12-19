@@ -1,0 +1,28 @@
+GOOGLE_API_PLACES = {"emergency_services": ["fire_station", "hospital", "pharmacy", "veterinary_care"],
+                     "law_enforcement": ["police"],
+                     "military": [],
+                     "water": [],
+                     "power": [],
+                     "food": ["supermarket", "convenience_store", "restaurant", "meal_takeaway", "meal_delivery"],
+                     "transport": ["airport", "light_rail_station", "bus_station", "car_rental", "train_station", "transit_station", "subway_station", "gas_station"],
+                     "services": ["bank", "dentist", "car_repair", "electrician", "laundry", "locksmith", "physiotherapist", "plumber", "post_office", "storage",],
+                     "government": ["city_hall", "courthouse", "embassy", "library", "local_government_office"],
+                     "stores": ["book_store", "car_dealer", "department_store", "clothing_store", "electronics_store", "furniture_store", "hardware_store", "home_goods_store", "jewelry_store", "liquor_store", "shoe_store", "shopping_mall"],
+                     "schools": ["university", "school", "secondary_school", "primary_school"],
+                     "tourism": ["stadium", "tourist_attraction", "zoo", "night_club", "movie_theater", "amusement_park", "casino", "art_gallery"],
+                     "shelter": ["campground", "lodging", "rv_park"]}
+
+CATEGORIES = {0: "emergency_services",
+              1: "law_enforcement",
+              2: "military",
+              3: "water",
+              4: "power",
+              5: "food",
+              6: "transport",
+              7: "services",
+              8: "government",
+              9: "stores",
+              10: "schools",
+              11: "tourism",
+              12: "shelter"}
+
