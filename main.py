@@ -21,6 +21,9 @@ def run(
     water: typing.Optional[bool] = None,
     power: typing.Optional[bool] = None,
     food: typing.Optional[bool] = None,
+    transport: typing.Optional[bool] = None,
+    services: typing.Optional[bool] = None,
+    government: typing.Optional[bool] = None,
 ) -> None:
     kml = simplekml.Kml()
     ground = kml.newgroundoverlay(name='GroundOverlay')
@@ -36,32 +39,61 @@ def run(
     file_name = save_directory + "/master_" + str(center_point[0]) + "_" + str(center_point[1]) + ".kml"
 
     if emergency_services:
-        # pull fire stations
-        fire_file_name = save_directory + "/fire_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
-        if os.path.isfile(fire_file_name):
-            with open(fire_file_name, 'r') as f:
-                fire_json = json.load(f)
-        else:
-            fire_api_request = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" \
-                          + str(center_point[0]) + "," + str(center_point[1]) + \
-                          "&radius=" + str(radius) + "&type=fire_station&sensor=true&key=" + str(google_api_key)
-            fire_response = requests.get(fire_api_request)
-            if not os.path.isfile(fire_file_name):
-                with open(fire_file_name, 'w') as f:
-                    json.dump(fire_response.json(), f)
-            fire_json = fire_response.json()
-
-        fire_stations = fire_json["results"]
-        kml_points = []
-        for station in fire_stations:
-            kml_points.append(kml.newpoint(name=station["name"],
-                                           coords=[(station["geometry"]["location"]["lat"],
-                                                    station["geometry"]["location"]["lng"])]))
+        load_or_query_place("fire_station", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("hospital", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("veterinary_care", center_point, radius, save_directory, kml, google_api_key)
+    if law_enforcement:
+        load_or_query_place("police", center_point, radius, save_directory, kml, google_api_key)
+    if military:
+        x = 1
+    if water:
+        x = 1
+    if power:
+        x = 1
+    if food:
+        load_or_query_place("supermarket", center_point, radius, save_directory, kml, google_api_key)
+    if transport:
+        load_or_query_place("airport", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("light_rail_station", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("bus_station", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("car_rental", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("train_station", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("transit_station", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("subway_station", center_point, radius, save_directory, kml, google_api_key)
+        load_or_query_place("gas_station", center_point, radius, save_directory, kml, google_api_key)
+    if services:
+        x = 1
+    if government:
+        x = 1
 
         kml.save(file_name)
 
 
+def load_or_query_place(place: str,
+                        center_point: typing.List[float],
+                        radius: float,
+                        save_directory: str,
+                        kml: simplekml.Kml,
+                        google_api_key: str):
+    place_file_name = save_directory + "/" + place + "_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
+    if os.path.isfile(place_file_name):
+        with open(place_file_name, 'r') as f:
+            json_data = json.load(f)
+    else:
+        fire_api_request = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" \
+                           + str(center_point[0]) + "," + str(center_point[1]) + \
+                           "&radius=" + str(radius) + "&type=" + place + "&sensor=true&key=" + str(google_api_key)
+        rest_response = requests.get(fire_api_request)
+        if not os.path.isfile(place_file_name):
+            with open(place_file_name, 'w') as f:
+                json.dump(rest_response.json(), f)
+        json_data = rest_response.json()
 
+    places = json_data["results"]
+    for plc in places:
+        kml.newpoint(name=plc["name"],
+                     coords=[(plc["geometry"]["location"]["lat"],
+                              plc["geometry"]["location"]["lng"])])
 
 
 def main() -> None:
@@ -139,6 +171,24 @@ def main() -> None:
         default=True,
         help="Label food locations",
     )
+    parser.add_argument(
+        "--transport",
+        type=bool,
+        default=True,
+        help="Label transport locations",
+    )
+    parser.add_argument(
+        "--services",
+        type=bool,
+        default=True,
+        help="Label transport locations",
+    )
+    parser.add_argument(
+        "--government",
+        type=bool,
+        default=True,
+        help="Label transport locations",
+    )
 
     opt = parser.parse_args()
     if opt.config_file:
@@ -156,6 +206,9 @@ def main() -> None:
             opt.water = config["area-study"].get("WATER")
             opt.power = config["area-study"].get("POWER")
             opt.food = config["area-study"].get("FOOD")
+            opt.transport = config["area-study"].get("TRANSPORT")
+            opt.services = config["area-study"].get("SERVICES")
+            opt.government = config["area-study"].get("government")
         else:
             print("Config not found! Defaulting to cli arguments.")
 
