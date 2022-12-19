@@ -1,0 +1,90 @@
+{
+  "html_attributions": [],
+  "results": [
+    {
+      "business_status": "OPERATIONAL",
+      "geometry": {
+        "location": {
+          "lat": 30.4043627,
+          "lng": -97.8368859
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 30.4056036802915,
+            "lng": -97.83557601970848
+          },
+          "southwest": {
+            "lat": 30.4029057197085,
+            "lng": -97.83827398029149
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/civic_building-71.png",
+      "icon_background_color": "#7B9EB0",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/civic-bldg_pinlet",
+      "name": "Austin Fire Station 39",
+      "place_id": "ChIJrSfHqZkzW4YRDDTBQCH-1aI",
+      "plus_code": {
+        "compound_code": "C537+P6 Austin, TX, USA",
+        "global_code": "8624C537+P6"
+      },
+      "rating": 5,
+      "reference": "ChIJrSfHqZkzW4YRDDTBQCH-1aI",
+      "scope": "GOOGLE",
+      "types": [
+        "fire_station",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2,
+      "vicinity": "7701 River Place Boulevard, Austin"
+    },
+    {
+      "business_status": "OPERATIONAL",
+      "geometry": {
+        "location": {
+          "lat": 30.3961852,
+          "lng": -97.86930389999999
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 30.39747863029149,
+            "lng": -97.8681893197085
+          },
+          "southwest": {
+            "lat": 30.3947806697085,
+            "lng": -97.87088728029151
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/civic_building-71.png",
+      "icon_background_color": "#7B9EB0",
+      "icon_mask_base_uri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/civic-bldg_pinlet",
+      "name": "Lake Travis Fire Station 604",
+      "photos": [
+        {
+          "height": 4032,
+          "html_attributions": [
+            "<a href=\"https://maps.google.com/maps/contrib/103647651175267581874\">Santosh Sugumar</a>"
+          ],
+          "photo_reference": "ARywPAJUdDVPPbJbn64q7Mf1gYPFgMKAZGHmuQ2RlGNgX2YQoYBJiNmfRoKL8z8_f2aIpTGliMJpZKQxOPbHd38Xm0K8sBJNmRwy-_Ke_OBv2LNt6nHV986r3kbjRAzdOmHk2qcj8YCpoBDXLgEFtGUivWFtxYhxWyGnyxRQQtv2yvKmAwny",
+          "width": 3024
+        }
+      ],
+      "place_id": "ChIJ4aACor8zW4YRRw3ICE2pvE4",
+      "plus_code": {
+        "compound_code": "94WJ+F7 Austin, TX, USA",
+        "global_code": "862494WJ+F7"
+      },
+      "reference": "ChIJ4aACor8zW4YRRw3ICE2pvE4",
+      "scope": "GOOGLE",
+      "types": [
+        "fire_station",
+        "point_of_interest",
+        "establishment"
+      ],
+      "vicinity": "5939 Comanche Trail, Austin"
+    }
+  ],
+  "status": "OK"
+}
