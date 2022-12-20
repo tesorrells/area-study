@@ -6,3 +6,6 @@ Don't use the API to debug, use the pushed example files
 
 # Google API Supported types:
 https://developers.google.com/maps/documentation/places/web-service/supported_types
+
+# Open Street Map Keys:
+https://wiki.openstreetmap.org/wiki/Map_features

@@ -4,9 +4,10 @@ import os
 import typing
 import simplekml
 import geopy.distance
+import overpy
 import requests
 import json
-from constants import GOOGLE_API_PLACES, CATEGORIES
+from constants import GOOGLE_API_PLACES, CATEGORIES, OSM_API_PLACES
 
 
 def run(
@@ -35,6 +36,8 @@ def run(
         if val:
             for place in GOOGLE_API_PLACES[CATEGORIES[idx]]:
                 load_or_query_place(place, center_point, radius, save_directory, kml, google_api_key)
+            for place in OSM_API_PLACES[CATEGORIES[idx]]:
+                load_or_query_osm_place(location, center_point, CATEGORIES[idx], place, save_directory, kml)
 
     kml.save(file_name)
 
@@ -45,6 +48,17 @@ def load_or_query_place(place: str,
                         save_directory: str,
                         kml: simplekml.Kml,
                         google_api_key: str) -> bool:
+    """
+    Queries Google Places API for place nodes, defined in constants, 
+    within a certain radius of the center point of the location bounding box
+    :param place: place as defined in constants
+    :param center_point: center point of location bounding box lat/lon
+    :param radius: radius from center point to corner of bounding box in meters
+    :param save_directory: directory to save response to
+    :param kml: kml layer to add nodes to
+    :param google_api_key: google api key to query google maps/places api
+    :return: False if failure, True if success
+    """
     place_file_name = save_directory + "/" + place + "_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
     if os.path.isfile(place_file_name):
         with open(place_file_name, 'r') as f:
@@ -62,12 +76,57 @@ def load_or_query_place(place: str,
                 json.dump(rest_response.json(), f)
         json_data = rest_response.json()
 
-
     places = json_data["results"]
     for plc in places:
         kml.newpoint(name=plc["name"],
                      coords=[(plc["geometry"]["location"]["lat"],
                               plc["geometry"]["location"]["lng"])])
+
+    return True
+
+
+def load_or_query_osm_place(location: typing.List[float],
+                            center_point: typing.List[float],
+                            category: str,
+                            place: str,
+                            save_directory: str,
+                            kml: simplekml.Kml) -> bool:
+    """
+    Queries Open Street Map API for category + place nodes within a certain location bounding box
+    :param location: top right and bottom left corners of bounding box, lat/lon
+    :param center_point: center point of location bounding box lat/lon
+    :param category: category as defined in constants
+    :param place: place as defined in constants
+    :param save_directory: directory to save response to
+    :param kml: kml layer to add nodes to
+    :return: False if failure, True if success
+    """
+    place_file_name = save_directory + "/" + place + "_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
+
+    if os.path.isfile(place_file_name):
+        with open(place_file_name, 'r') as f:
+            json_data = json.load(f)
+    else:
+        api = overpy.Overpass()
+        query = """
+                [out:json];
+                node["{0}"="{1}"]({2},{3},{4},{5}); 
+                out center;
+                """
+        query = query.format(category, place, location[2], location[1], location[0], location[3])
+        try:
+            response = api.query(query)
+        except overpy.exception.OverpassGatewayTimeout:
+            print("Server load too high, rerun" + category + " " + place)
+            return False
+        # if not os.path.isfile(place_file_name):
+        #     with open(place_file_name, 'w') as f:
+        #         nodes = reponse.get_nodes()
+        #         json.dump(json.dumps(nodes), f)
+
+    for node in response.nodes:
+        kml.newpoint(name=category + "_" + place + "_" + str(node.id),
+                     coords=[(node.lat, node.lon)])
 
     return True
 
