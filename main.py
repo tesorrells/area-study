@@ -32,6 +32,8 @@ def run(
 
     file_name = save_directory + "/master_" + str(center_point[0]) + "_" + str(center_point[1]) + ".kml"
 
+    load_polygons(data_directory, kml)
+
     for idx, val in enumerate(categories):
         if val:
             for place in GOOGLE_API_PLACES[CATEGORIES[idx]]:
@@ -49,7 +51,7 @@ def load_or_query_place(place: str,
                         kml: simplekml.Kml,
                         google_api_key: str) -> bool:
     """
-    Queries Google Places API for place nodes, defined in constants, 
+    Queries Google Places API for place nodes, defined in constants,
     within a certain radius of the center point of the location bounding box
     :param place: place as defined in constants
     :param center_point: center point of location bounding box lat/lon
@@ -79,8 +81,8 @@ def load_or_query_place(place: str,
     places = json_data["results"]
     for plc in places:
         kml.newpoint(name=plc["name"],
-                     coords=[(plc["geometry"]["location"]["lat"],
-                              plc["geometry"]["location"]["lng"])])
+                     coords=[(plc["geometry"]["location"]["lng"],
+                              plc["geometry"]["location"]["lat"])])
 
     return True
 
@@ -126,9 +128,20 @@ def load_or_query_osm_place(location: typing.List[float],
 
     for node in response.nodes:
         kml.newpoint(name=category + "_" + place + "_" + str(node.id),
-                     coords=[(node.lat, node.lon)])
+                     coords=[(node.lon, node.lat)])
 
     return True
+
+
+def load_polygons(data_directory: str, kml: simplekml.Kml):
+    for filename in os.listdir(data_directory):
+        with open(os.path.join(data_directory, filename), 'r') as f:
+            json_data = json.load(f)
+            for area in json_data:
+                bounds = []
+                for bound in json_data[area]:
+                    bounds.append(bound)
+                kml.newpolygon(name=area, outerboundaryis=bounds)
 
 
 def main() -> None:
