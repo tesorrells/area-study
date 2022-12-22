@@ -50,3 +50,6 @@ CATEGORIES = {0: "emergency_services",
 OSM_PLACE_HIGH_FIDELITY = {"power": ["cable", "catenary_mast", "compensator", "connection", "converter", "generator",
                                      "heliosat", "insulator", "line", "busbar", "bay", "minor_line", "plant", "pole",
                                      "portal", ]}
+
+VIOLENT_CRIME = ["MURDER", "ASSAULT", "RAPE", "ROBBERY", ]
+PROPERTY_CRIME = ["THEFT", "BURGLARY", ]
