@@ -2,6 +2,8 @@ import argparse
 import configparser
 import os
 import typing
+from time import sleep
+
 import simplekml
 import geopy.distance
 import overpy
@@ -59,38 +61,6 @@ def run(
                                                          crime_rate)
 
     kml.save(file_name)
-
-
-def calculate_crime_rate(violent_crimes: typing.Dict[str, str],
-                         property_crimes: typing.Dict[str, str],
-                         population: int):
-    """
-    Calculates the overall crime rate in a zipcode and applies a color code to the zipcode polygon
-    :param violent_crimes: dict of violent crimes and the zipcodes they occur in
-    :param property_crimes: dict of property crimes and the zipcodes they occur in
-    :param population: population of the area
-    :return: returns a list of the crime rates for each zipcode
-    """
-    crime_counts = {"MURDER": [], "ASSAULT": [], "RAPE": [], "ROBBERY": [], "THEFT": [], "BURGLARY": []}
-    for key, values in violent_crimes.items():
-        crime_counts[key] = pd.Series(values).value_counts()
-    for key, values in property_crimes.items():
-        crime_counts[key] = pd.Series(values).value_counts()
-    for key in crime_counts:
-        crime_counts[key] = list(zip(crime_counts[key], crime_counts[key].index))
-
-    crime_rate = {}
-    for key, value in crime_counts.items():
-        try:
-            for zipcode in value:
-                if zipcode[1] in crime_rate:
-                    crime_rate[zipcode[1]] += zipcode[0] * CRIME_WEIGHTS[key]
-                else:
-                    crime_rate[zipcode[1]] = zipcode[0] * CRIME_WEIGHTS[key]
-        except:
-            continue
-
-    return crime_rate
 
 
 def load_or_query_place(place: str,
@@ -169,7 +139,8 @@ def load_or_query_osm_place(location: typing.List[float],
         query = query.format(category, place, location[2], location[1], location[0], location[3])
         try:
             response = api.query(query)
-        except overpy.exception.OverpassGatewayTimeout:
+            sleep(10)
+        except overpy.exception.OverpassGatewayTimeout and overpy.exception.OverpassTooManyRequests:
             print("Server load too high, rerun" + category + " " + place)
             return False
         # if not os.path.isfile(place_file_name):
@@ -248,6 +219,38 @@ def load_crime_data(crime_soda_addr: str,
     return violent_crimes, property_crimes
 
 
+def calculate_crime_rate(violent_crimes: typing.Dict[str, str],
+                         property_crimes: typing.Dict[str, str],
+                         population: int):
+    """
+    Calculates the overall crime rate in a zipcode and applies a color code to the zipcode polygon
+    :param violent_crimes: dict of violent crimes and the zipcodes they occur in
+    :param property_crimes: dict of property crimes and the zipcodes they occur in
+    :param population: population of the area
+    :return: returns a list of the crime rates for each zipcode
+    """
+    crime_counts = {"MURDER": [], "ASSAULT": [], "RAPE": [], "ROBBERY": [], "THEFT": [], "BURGLARY": []}
+    for key, values in violent_crimes.items():
+        crime_counts[key] = pd.Series(values).value_counts()
+    for key, values in property_crimes.items():
+        crime_counts[key] = pd.Series(values).value_counts()
+    for key in crime_counts:
+        crime_counts[key] = list(zip(crime_counts[key], crime_counts[key].index))
+
+    crime_rate = {}
+    for key, value in crime_counts.items():
+        try:
+            for zipcode in value:
+                if zipcode[1] in crime_rate:
+                    crime_rate[zipcode[1]] += zipcode[0] * CRIME_WEIGHTS[key]
+                else:
+                    crime_rate[zipcode[1]] = zipcode[0] * CRIME_WEIGHTS[key]
+        except:
+            continue
+
+    return crime_rate
+
+
 def load_zipcode_boundaries(zipcode_soda_addr: str,
                             center_point: typing.List[float],
                             save_directory: str,
@@ -282,33 +285,33 @@ def load_zipcode_boundaries(zipcode_soda_addr: str,
                     bounds.append(point)
         multipoly = kml.newpolygon(name=zipcode['zcta5ce10'], outerboundaryis=bounds)
         if zipcode['zcta5ce10'] not in crime_rate:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 212, 255)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 212, 255, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 4000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 82, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 82, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 3500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 125, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 125, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 3000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 168, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 168, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 2500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 212, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 212, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 2000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 255, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 255, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 1500:
-            multipoly.style.polystyle.color = simplekml.Color.	rgb(212, 255, 82)
+            multipoly.style.polystyle.color = simplekml.Color.	rgb(212, 255, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 1000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(168, 255, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(168, 255, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(125, 255, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(125, 255, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 400:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 82)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 82, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 300:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 125)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 125, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 200:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 168)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 168, a=127)
         elif crime_rate[zipcode['zcta5ce10']] > 100:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 212)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 212, a=127)
         else:
-            multipoly.style.labelstyle.color = simplekml.Color.rgb(82, 255, 255)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 255, a=127)
 
     return zipcode_boundaries
 
