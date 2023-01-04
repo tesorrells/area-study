@@ -9,7 +9,7 @@ import requests
 import json
 import pandas as pd
 from geopy.geocoders import Nominatim
-from constants import GOOGLE_API_PLACES, CATEGORIES, OSM_API_PLACES, VIOLENT_CRIME, PROPERTY_CRIME
+from constants import GOOGLE_API_PLACES, CATEGORIES, OSM_API_PLACES, CRIME_WEIGHTS
 
 
 def run(
@@ -19,7 +19,9 @@ def run(
         location: typing.List[float],
         google_api_key: str,
         categories: typing.List[bool],
+        population: int,
         crime_soda_addr: typing.Optional[str] = None,
+        zipcode_soda_addr: typing.Optional[str] = None,
         config_file: typing.Optional[str] = None,
 ) -> None:
     kml = simplekml.Kml()
@@ -46,9 +48,49 @@ def run(
                 load_or_query_osm_place(location, center_point, CATEGORIES[idx], place, save_directory, kml)
 
     if crime_soda_addr:
-        load_crime_data(crime_soda_addr, location, center_point, save_directory)
+        violent_crimes, property_crimes = load_crime_data(crime_soda_addr, location, center_point, save_directory)
+        crime_rate = calculate_crime_rate(violent_crimes, property_crimes, population)
+
+        if zipcode_soda_addr:
+            zipcode_boundaries = load_zipcode_boundaries(zipcode_soda_addr,
+                                                         center_point,
+                                                         save_directory,
+                                                         kml,
+                                                         crime_rate)
 
     kml.save(file_name)
+
+
+def calculate_crime_rate(violent_crimes: typing.Dict[str, str],
+                         property_crimes: typing.Dict[str, str],
+                         population: int):
+    """
+    Calculates the overall crime rate in a zipcode and applies a color code to the zipcode polygon
+    :param violent_crimes: dict of violent crimes and the zipcodes they occur in
+    :param property_crimes: dict of property crimes and the zipcodes they occur in
+    :param population: population of the area
+    :return: returns a list of the crime rates for each zipcode
+    """
+    crime_counts = {"MURDER": [], "ASSAULT": [], "RAPE": [], "ROBBERY": [], "THEFT": [], "BURGLARY": []}
+    for key, values in violent_crimes.items():
+        crime_counts[key] = pd.Series(values).value_counts()
+    for key, values in property_crimes.items():
+        crime_counts[key] = pd.Series(values).value_counts()
+    for key in crime_counts:
+        crime_counts[key] = list(zip(crime_counts[key], crime_counts[key].index))
+
+    crime_rate = {}
+    for key, value in crime_counts.items():
+        try:
+            for zipcode in value:
+                if zipcode[1] in crime_rate:
+                    crime_rate[zipcode[1]] += zipcode[0] * CRIME_WEIGHTS[key]
+                else:
+                    crime_rate[zipcode[1]] = zipcode[0] * CRIME_WEIGHTS[key]
+        except:
+            continue
+
+    return crime_rate
 
 
 def load_or_query_place(place: str,
@@ -144,6 +186,11 @@ def load_or_query_osm_place(location: typing.List[float],
 
 
 def load_polygons(data_directory: str, kml: simplekml.Kml):
+    """
+    Loads polygons from a file in a user specified data directory
+    :param data_directory: directory user files are located
+    :param kml: kml layer to add polygons to
+    """
     for filename in os.listdir(data_directory):
         with open(os.path.join(data_directory, filename), 'r') as f:
             json_data = json.load(f)
@@ -157,7 +204,15 @@ def load_polygons(data_directory: str, kml: simplekml.Kml):
 def load_crime_data(crime_soda_addr: str,
                     location: typing.List[float],
                     center_point: typing.List[float],
-                    save_directory: str,):
+                    save_directory: str,) -> typing.Tuple[typing.Dict[str, str], typing.Dict[str, str]]:
+    """
+    loads crime data from a SODA API
+    :param crime_soda_addr: SODA API address
+    :param location:
+    :param center_point: center point for save file name
+    :param save_directory: save directory to save API pull
+    :return: returns dicts of violent and property crimes
+    """
     place_file_name = save_directory + "/crime_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
 
     if os.path.isfile(place_file_name):
@@ -190,11 +245,24 @@ def load_crime_data(crime_soda_addr: str,
                 else:
                     property_crimes[key].append(crime["address"])
 
+    return violent_crimes, property_crimes
+
 
 def load_zipcode_boundaries(zipcode_soda_addr: str,
                             center_point: typing.List[float],
-                            save_directory: str,):
-    place_file_name = save_directory + "/crime_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
+                            save_directory: str,
+                            kml: simplekml.Kml,
+                            crime_rate: typing.Optional[typing.Dict[str, int]] = None):
+    """
+    loads zipcode polygons from a SODA PI
+    :param zipcode_soda_addr: SODA API adress
+    :param center_point: center point for save file name
+    :param save_directory: save directory to save API pull
+    :param kml: kml layer to add polygons to
+    :param crime_rate: crime rate list of area zip codes
+    :return: returns the zipcode polygons
+    """
+    place_file_name = save_directory + "/zipcode_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
 
     if os.path.isfile(place_file_name):
         with open(place_file_name, 'r') as f:
@@ -205,6 +273,42 @@ def load_zipcode_boundaries(zipcode_soda_addr: str,
         if not os.path.isfile(place_file_name):
             with open(place_file_name, 'w') as f:
                 json.dump(zipcode_boundaries, f)
+
+    for zipcode in zipcode_boundaries:
+        for poly in zipcode['the_geom']['coordinates']:
+            bounds = []
+            for area in poly:
+                for point in area:
+                    bounds.append(point)
+        multipoly = kml.newpolygon(name=zipcode['zcta5ce10'], outerboundaryis=bounds)
+        if zipcode['zcta5ce10'] not in crime_rate:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 212, 255)
+        elif crime_rate[zipcode['zcta5ce10']] > 4000:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 82, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 3500:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 125, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 3000:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 168, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 2500:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 212, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 2000:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 255, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 1500:
+            multipoly.style.polystyle.color = simplekml.Color.	rgb(212, 255, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 1000:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(168, 255, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 500:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(125, 255, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 400:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 82)
+        elif crime_rate[zipcode['zcta5ce10']] > 300:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 125)
+        elif crime_rate[zipcode['zcta5ce10']] > 200:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 168)
+        elif crime_rate[zipcode['zcta5ce10']] > 100:
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 212)
+        else:
+            multipoly.style.labelstyle.color = simplekml.Color.rgb(82, 255, 255)
 
     return zipcode_boundaries
 
@@ -258,6 +362,16 @@ def main() -> None:
         type=str,
         help="SODA API address for crime data",
     )
+    parser.add_argument(
+        "--zipcode_soda_addr",
+        type=str,
+        help="SODA API address for zipcode data",
+    )
+    parser.add_argument(
+        "--population",
+        type=int,
+        help="population for area",
+    )
 
     opt = parser.parse_args()
     if opt.config_file:
@@ -284,6 +398,8 @@ def main() -> None:
             opt.categories.append(config["area-study"].getboolean("TOURISM"))
             opt.categories.append(config["area-study"].getboolean("SHELTER"))
             opt.crime_soda_addr = config["area-study"].get("CRIME_SODA_ADDR")
+            opt.zipcode_soda_addr = config["area-study"].get("ZIPCODE_SODA_ADDR")
+            opt.population = config["area-study"].getint("POPULATION")
         else:
             print("Config not found! Defaulting to cli arguments.")
 

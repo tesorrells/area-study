@@ -1,3 +1,5 @@
+import simplekml
+
 GOOGLE_API_PLACES = {"emergency_services": ["fire_station", "hospital", "pharmacy", "veterinary_care"],
                      "law_enforcement": ["police"],
                      "military": [],
@@ -53,3 +55,5 @@ OSM_PLACE_HIGH_FIDELITY = {"power": ["cable", "catenary_mast", "compensator", "c
 
 VIOLENT_CRIME = ["MURDER", "ASSAULT", "RAPE", "ROBBERY", ]
 PROPERTY_CRIME = ["THEFT", "BURGLARY", ]
+
+CRIME_WEIGHTS = {"MURDER": 15, "ASSAULT": 2.5, "RAPE": 6.2, "ROBBERY": 4.7, "THEFT": 1, "BURGLARY": 2, }
