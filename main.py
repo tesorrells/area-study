@@ -46,8 +46,8 @@ def run(
         if val:
             for place in GOOGLE_API_PLACES[CATEGORIES[idx]]:
                 load_or_query_place(place, center_point, radius, save_directory, kml, google_api_key)
-            # for place in OSM_API_PLACES[CATEGORIES[idx]]:
-            #     load_or_query_osm_place(location, center_point, CATEGORIES[idx], place, save_directory, kml)
+            for place in OSM_API_PLACES[CATEGORIES[idx]]:
+                load_or_query_osm_place(location, center_point, CATEGORIES[idx], place, save_directory, kml)
 
     if crime_soda_addr:
         violent_crimes, property_crimes = load_crime_data(crime_soda_addr, location, center_point, save_directory)
@@ -400,7 +400,7 @@ def main() -> None:
             opt.google_api_key = config["area-study"].get("GOOGLE_API_KEY")
             opt.location = config["area-study"].get("LOCATION").split(",")
             opt.categories = []
-            opt.categories.append(config["area-study"].getboolean("EMERGENCY_SERVICES"))
+            opt.categories.append(config["area-study"].getboolean("EMERGENCY"))
             opt.categories.append(config["area-study"].getboolean("LAW_ENFORCEMENT"))
             opt.categories.append(config["area-study"].getboolean("MILITARY"))
             opt.categories.append(config["area-study"].getboolean("WATER"))
@@ -414,6 +414,8 @@ def main() -> None:
             opt.categories.append(config["area-study"].getboolean("TOURISM"))
             opt.categories.append(config["area-study"].getboolean("SHELTER"))
             opt.categories.append(config["area-study"].getboolean("BUILDING"))
+            opt.categories.append(config["area-study"].getboolean("TELECOM"))
+            opt.categories.append(config["area-study"].getboolean("MAN_MADE"))
             opt.crime_soda_addr = config["area-study"].get("CRIME_SODA_ADDR")
             opt.zipcode_soda_addr = config["area-study"].get("ZIPCODE_SODA_ADDR")
             opt.population = config["area-study"].getint("POPULATION")

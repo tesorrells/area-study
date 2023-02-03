@@ -1,6 +1,6 @@
 import simplekml
 
-GOOGLE_API_PLACES = {"emergency_services": ["fire_station", "hospital", "pharmacy", "veterinary_care"],
+GOOGLE_API_PLACES = {"emergency": ["fire_station", "hospital", "pharmacy", "veterinary_care"],
                      "law_enforcement": ["police"],
                      "military": [],
                      "water": [],
@@ -18,9 +18,12 @@ GOOGLE_API_PLACES = {"emergency_services": ["fire_station", "hospital", "pharmac
                      "tourism": ["stadium", "tourist_attraction", "zoo", "night_club", "movie_theater",
                                  "amusement_park", "casino", "art_gallery"],
                      "shelter": ["campground", "lodging", "rv_park"],
-                     "building": ["church", "mosque", "synagogue", "hindu_temple",]}
+                     "building": ["church", "mosque", "synagogue", "hindu_temple"],
+                     "telecom": [],
+                     "man_made": []}
 
-OSM_API_PLACES = {"emergency_services": [],
+OSM_API_PLACES = {"emergency": ["defibrillator", "landing_site", "fire_extinguisher", "fire_hydrant", "water_tank",
+                                "drinking_water"],
                   "law_enforcement": [],
                   "military": ["airfield", "base", "bunker", "barracks", "checkpoint", "danger_area", "office", "range",
                                "training_area"],
@@ -35,9 +38,13 @@ OSM_API_PLACES = {"emergency_services": [],
                   "schools": [],
                   "tourism": [],
                   "shelter": [],
-                  "building": ["shrine", "chapel", "monastery", "cathedral"]}
+                  "building": ["shrine", "chapel", "monastery", "cathedral"],
+                  "telecom": ["exchange", "connection_point", "distribution_point", "service_device", "data_center"],
+                  "man_made": ["communications_tower", "monitoring_station", "observatory", "reservoir_covered",
+                               "storage_tank", "street_cabinet", "surveillance", "water_tower", "water_well",
+                               "water_tap", "water_works"]}
 
-CATEGORIES = {0: "emergency_services",
+CATEGORIES = {0: "emergency",
               1: "law_enforcement",
               2: "military",
               3: "water",
@@ -50,7 +57,9 @@ CATEGORIES = {0: "emergency_services",
               10: "schools",
               11: "tourism",
               12: "shelter",
-              13: "building"}
+              13: "building",
+              14: "telecom",
+              15: "man_made"}
 
 OSM_PLACE_HIGH_FIDELITY = {"power": ["cable", "catenary_mast", "compensator", "connection", "converter", "generator",
                                      "heliosat", "insulator", "line", "busbar", "bay", "minor_line", "plant", "pole",
