@@ -46,8 +46,8 @@ def run(
         if val:
             for place in GOOGLE_API_PLACES[CATEGORIES[idx]]:
                 load_or_query_place(place, center_point, radius, save_directory, kml, google_api_key)
-            for place in OSM_API_PLACES[CATEGORIES[idx]]:
-                load_or_query_osm_place(location, center_point, CATEGORIES[idx], place, save_directory, kml)
+            # for place in OSM_API_PLACES[CATEGORIES[idx]]:
+            #     load_or_query_osm_place(location, center_point, CATEGORIES[idx], place, save_directory, kml)
 
     if crime_soda_addr:
         violent_crimes, property_crimes = load_crime_data(crime_soda_addr, location, center_point, save_directory)
@@ -83,8 +83,10 @@ def load_or_query_place(place: str,
     place_file_name = save_directory + "/" + place + "_" + str(center_point[0]) + "_" + str(center_point[1]) + ".json"
     if os.path.isfile(place_file_name):
         with open(place_file_name, 'r') as f:
+            print("Loading Google " + place)
             json_data = json.load(f)
     else:
+        print("Acquiring Google " + place)
         api_request = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" \
                       + str(center_point[0]) + "," + str(center_point[1]) + \
                       "&radius=" + str(radius) + "&type=" + place + "&sensor=true&key=" + str(google_api_key)
@@ -138,11 +140,19 @@ def load_or_query_osm_place(location: typing.List[float],
                 """
         query = query.format(category, place, location[2], location[1], location[0], location[3])
         try:
+            print("Acquiring " + category + " " + place)
             response = api.query(query)
             sleep(10)
-        except overpy.exception.OverpassGatewayTimeout and overpy.exception.OverpassTooManyRequests:
-            print("Server load too high, rerun" + category + " " + place)
-            return False
+        except overpy.exception.OverpassGatewayTimeout:
+            print("Server load too high, rerunning " + category + " " + place)
+            sleep(20)
+            load_or_query_osm_place(location, center_point, category, place, save_directory, kml)
+            return True
+        except overpy.exception.OverpassTooManyRequests:
+            print("Server load too high, rerunning " + category + " " + place)
+            sleep(20)
+            load_or_query_osm_place(location, center_point, category, place, save_directory, kml)
+            return True
         # if not os.path.isfile(place_file_name):
         #     with open(place_file_name, 'w') as f:
         #         nodes = reponse.get_nodes()
@@ -163,13 +173,16 @@ def load_polygons(data_directory: str, kml: simplekml.Kml):
     :param kml: kml layer to add polygons to
     """
     for filename in os.listdir(data_directory):
-        with open(os.path.join(data_directory, filename), 'r') as f:
-            json_data = json.load(f)
-            for area in json_data:
-                bounds = []
-                for bound in json_data[area]:
-                    bounds.append(bound)
-                kml.newpolygon(name=area, outerboundaryis=bounds)
+        if os.path.isfile(os.path.join(data_directory, filename)):
+            with open(os.path.join(data_directory, filename), 'r') as f:
+                if filename.split(".")[1] == "json":
+                    json_data = json.load(f)
+                    for area in json_data:
+                        bounds = []
+                        for bound in json_data[area]:
+                            bounds.append([bound[1], bound[0]])
+                        poly = kml.newpolygon(name=area, outerboundaryis=bounds)
+                        poly.style.polystyle.color = simplekml.Color.rgb(0, 0, 255, a=127)
 
 
 def load_crime_data(crime_soda_addr: str,
@@ -285,33 +298,33 @@ def load_zipcode_boundaries(zipcode_soda_addr: str,
                     bounds.append(point)
         multipoly = kml.newpolygon(name=zipcode['zcta5ce10'], outerboundaryis=bounds)
         if zipcode['zcta5ce10'] not in crime_rate:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 212, 255, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 212, 255, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 4000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 82, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 82, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 3500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 125, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 125, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 3000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 168, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 168, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 2500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 212, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 212, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 2000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 255, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 255, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 1500:
-            multipoly.style.polystyle.color = simplekml.Color.	rgb(212, 255, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.	rgb(212, 255, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 1000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(168, 255, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(168, 255, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(125, 255, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(125, 255, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 400:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 82, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 82, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 300:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 125, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 125, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 200:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 168, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 168, a=100)
         elif crime_rate[zipcode['zcta5ce10']] > 100:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 212, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 212, a=100)
         else:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 255, a=127)
+            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 255, a=100)
 
     return zipcode_boundaries
 
@@ -400,6 +413,7 @@ def main() -> None:
             opt.categories.append(config["area-study"].getboolean("SCHOOLS"))
             opt.categories.append(config["area-study"].getboolean("TOURISM"))
             opt.categories.append(config["area-study"].getboolean("SHELTER"))
+            opt.categories.append(config["area-study"].getboolean("BUILDING"))
             opt.crime_soda_addr = config["area-study"].get("CRIME_SODA_ADDR")
             opt.zipcode_soda_addr = config["area-study"].get("ZIPCODE_SODA_ADDR")
             opt.population = config["area-study"].getint("POPULATION")

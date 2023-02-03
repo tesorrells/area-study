@@ -17,7 +17,8 @@ GOOGLE_API_PLACES = {"emergency_services": ["fire_station", "hospital", "pharmac
                      "schools": ["university", "school", "secondary_school", "primary_school"],
                      "tourism": ["stadium", "tourist_attraction", "zoo", "night_club", "movie_theater",
                                  "amusement_park", "casino", "art_gallery"],
-                     "shelter": ["campground", "lodging", "rv_park"]}
+                     "shelter": ["campground", "lodging", "rv_park"],
+                     "building": ["church", "mosque", "synagogue", "hindu_temple",]}
 
 OSM_API_PLACES = {"emergency_services": [],
                   "law_enforcement": [],
@@ -33,7 +34,8 @@ OSM_API_PLACES = {"emergency_services": [],
                   "stores": [],
                   "schools": [],
                   "tourism": [],
-                  "shelter": []}
+                  "shelter": [],
+                  "building": ["shrine", "chapel", "monastery", "cathedral"]}
 
 CATEGORIES = {0: "emergency_services",
               1: "law_enforcement",
@@ -47,7 +49,8 @@ CATEGORIES = {0: "emergency_services",
               9: "stores",
               10: "schools",
               11: "tourism",
-              12: "shelter"}
+              12: "shelter",
+              13: "building"}
 
 OSM_PLACE_HIGH_FIDELITY = {"power": ["cable", "catenary_mast", "compensator", "connection", "converter", "generator",
                                      "heliosat", "insulator", "line", "busbar", "bay", "minor_line", "plant", "pole",
