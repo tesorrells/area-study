@@ -9,3 +9,7 @@ https://developers.google.com/maps/documentation/places/web-service/supported_ty
 
 # Open Street Map Keys:
 https://wiki.openstreetmap.org/wiki/Map_features
+
+# KML Generation Example:
+![alt text](assets/tak_screenshot.jpg)
+KML Generated for area in West Austin, Texas
