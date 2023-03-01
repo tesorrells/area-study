@@ -2,15 +2,9 @@ import argparse
 import configparser
 import os
 import typing
-from time import sleep
 
 import simplekml
 import geopy.distance
-import overpy
-import requests
-import json
-import pandas as pd
-from geopy.geocoders import Nominatim
 
 from calculators import calculate_crime_rate
 from constants import GOOGLE_API_PLACES, CATEGORIES, OSM_API_PLACES, CRIME_WEIGHTS

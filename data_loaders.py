@@ -1,6 +1,7 @@
 import json
 import os
 import typing
+from collections import defaultdict
 
 import requests
 import simplekml
@@ -105,33 +106,24 @@ def load_zipcode_boundaries(zipcode_soda_addr: str,
                 for point in area:
                     bounds.append(point)
         multipoly = kml.newpolygon(name=zipcode['zcta5ce10'], outerboundaryis=bounds)
+        color_codes = defaultdict(lambda: simplekml.Color.rgb(82, 255, 255, a=100),
+                                  {4000: simplekml.Color.rgb(255, 82, 82, a=100),
+                                   3500: simplekml.Color.rgb(255, 125, 82, a=100),
+                                   3000: simplekml.Color.rgb(255, 168, 82, a=100),
+                                   2500: simplekml.Color.rgb(255, 212, 82, a=100),
+                                   2000: simplekml.Color.rgb(255, 255, 82, a=100),
+                                   1500: simplekml.Color.rgb(212, 255, 82, a=100),
+                                   1000: simplekml.Color.rgb(168, 255, 82, a=100),
+                                   500: simplekml.Color.rgb(125, 255, 82, a=100),
+                                   400: simplekml.Color.rgb(82, 255, 82, a=100),
+                                   300: simplekml.Color.rgb(82, 255, 125, a=100),
+                                   200: simplekml.Color.rgb(82, 255, 168, a=100),
+                                   100: simplekml.Color.rgb(82, 255, 212, a=100)})
+        color_key_list = list(color_codes.keys())
         if zipcode['zcta5ce10'] not in crime_rate:
             multipoly.style.polystyle.color = simplekml.Color.rgb(82, 212, 255, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 4000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 82, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 3500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 125, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 3000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 168, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 2500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 212, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 2000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(255, 255, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 1500:
-            multipoly.style.polystyle.color = simplekml.Color.	rgb(212, 255, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 1000:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(168, 255, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 500:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(125, 255, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 400:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 82, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 300:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 125, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 200:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 168, a=100)
-        elif crime_rate[zipcode['zcta5ce10']] > 100:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 212, a=100)
         else:
-            multipoly.style.polystyle.color = simplekml.Color.rgb(82, 255, 255, a=100)
+            color_key_idx = next(x[0] for x in enumerate(color_key_list) if x[1] < int(zipcode['zcta5ce10']))
+            multipoly.style.polystyle.color = color_codes[color_key_list[color_key_idx]]
 
     return zipcode_boundaries

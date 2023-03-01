@@ -114,6 +114,12 @@ def load_or_query_osm_place(location: typing.List[float],
 
 
 def get_city_wikidata(city, country):
+    """
+    Used to query wikidata for city info
+    :param city: city to query
+    :param country: country the city resides in
+    :return: dict with population of city
+    """
     query = """
     SELECT ?city ?cityLabel ?country ?countryLabel ?population
     WHERE
