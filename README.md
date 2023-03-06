@@ -4,6 +4,9 @@ Python program that will allow you to designate what you want marked on your are
 Coordinate system is in KML format: longitude, latitude, altitude
 Don't use the API to debug, use the pushed example files
 
+# Setup
+'''pip install -r requirements.txt'''
+
 # Google API Supported types:
 https://developers.google.com/maps/documentation/places/web-service/supported_types
 
