@@ -9,7 +9,7 @@ Don't use the API to debug, use the pushed example files
 
 Either edit config.ini to change program inputs and only use the config_file cli command or use cli for every entry:
 
-`
+```
 python3 main.py 
 --config-file=config.ini
 
@@ -23,7 +23,7 @@ python3 main.py
 --city=nearest city
 --state=state city resides in
 --country-code=country code state resides in (America, USA, United States, etc)
-`
+```
 
 # Google API Supported types:
 https://developers.google.com/maps/documentation/places/web-service/supported_types
